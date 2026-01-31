@@ -274,6 +274,138 @@ const MasjidModal = ({ masjid, onClose, userLocation }) => {
   );
 };
 
+// Hamburger Menu Component
+const HamburgerMenu = ({ isOpen, onClose }) => {
+  if (!isOpen) return null;
+
+  const menuItems = [
+    {
+      icon: '➕',
+      label: 'Add a Masjid',
+      description: 'Submit a new mosque',
+      action: () => {
+        const subject = encodeURIComponent('[Jummah Finder] Add New Masjid');
+        const body = encodeURIComponent(
+          `NEW MASJID SUBMISSION\n========================\n\n` +
+          `Masjid Name: \n\n` +
+          `Area/Locality: \n\n` +
+          `Jummah Timings:\n- 1st Jamat: \n- 2nd Jamat (if any): \n\n` +
+          `Facilities:\n- Ladies Section: Yes/No\n- Parking: Yes/No\n\n` +
+          `Google Maps Link (optional): \n\n` +
+          `Additional Notes: `
+        );
+        window.location.href = `mailto:jumahfinder@gmail.com?subject=${subject}&body=${body}`;
+        onClose();
+      }
+    },
+    {
+      icon: '💬',
+      label: 'Leave Feedback',
+      description: 'Share your thoughts',
+      action: () => {
+        const subject = encodeURIComponent('[Jummah Finder] Feedback');
+        const body = encodeURIComponent(
+          `FEEDBACK FOR JUMMAH FINDER\n========================\n\n` +
+          `What do you like about the app?\n\n\n` +
+          `What could be improved?\n\n\n` +
+          `Any feature suggestions?\n\n\n` +
+          `Other comments:\n`
+        );
+        window.location.href = `mailto:jumahfinder@gmail.com?subject=${subject}&body=${body}`;
+        onClose();
+      }
+    },
+    {
+      icon: '📤',
+      label: 'Share App',
+      description: 'Share with friends',
+      action: () => {
+        if (navigator.share) {
+          navigator.share({
+            title: 'Jummah Finder',
+            text: 'Find Jummah prayer timings in Bengaluru!',
+            url: window.location.href
+          });
+        } else {
+          navigator.clipboard.writeText(window.location.href);
+          alert('Link copied to clipboard!');
+        }
+        onClose();
+      }
+    },
+    {
+      icon: 'ℹ️',
+      label: 'About',
+      description: 'Version 1.0',
+      action: () => {
+        alert('Jummah Finder v1.0\n\nFind Jummah prayer timings at masjids in Bengaluru.\n\nMade with ❤️ for the Muslim community.');
+        onClose();
+      }
+    }
+  ];
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/30 z-[1500]"
+        onClick={onClose}
+      />
+
+      {/* Menu Panel */}
+      <div
+        className="fixed top-0 right-0 h-full w-72 bg-white shadow-2xl z-[1600] overflow-y-auto"
+        style={{ animation: 'slideInRight 0.2s ease-out' }}
+      >
+        {/* Header */}
+        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 px-6 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">🕌</span>
+              <div>
+                <h2 className="text-white font-bold text-lg">Jummah Finder</h2>
+                <p className="text-emerald-100 text-xs">Bengaluru</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="bg-white/20 hover:bg-white/30 text-white rounded-full p-2 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Menu Items */}
+        <div className="py-2">
+          {menuItems.map((item, idx) => (
+            <button
+              key={idx}
+              onClick={item.action}
+              className="w-full flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors text-left"
+            >
+              <span className="text-2xl">{item.icon}</span>
+              <div>
+                <p className="font-semibold text-slate-800">{item.label}</p>
+                <p className="text-xs text-slate-500">{item.description}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-slate-100 bg-white">
+          <p className="text-xs text-slate-400 text-center">
+            Made with ❤️ for the Muslim community
+          </p>
+        </div>
+      </div>
+    </>
+  );
+};
+
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMasjid, setSelectedMasjid] = useState(null);
@@ -282,6 +414,7 @@ function App() {
   const [userLocation, setUserLocation] = useState(null);
   const [showNearbyDropdown, setShowNearbyDropdown] = useState(false);
   const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
@@ -347,41 +480,54 @@ function App() {
                 </div>
               </div>
 
-              {/* Near Me Button */}
-              <div className="relative">
-                <button
-                  onClick={toggleNearbyDropdown}
-                  disabled={nearbyLoading}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all text-sm ${
-                    nearbyLoading
+              {/* Right side buttons */}
+              <div className="flex items-center gap-2">
+                {/* Near Me Button */}
+                <div className="relative">
+                  <button
+                    onClick={toggleNearbyDropdown}
+                    disabled={nearbyLoading}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all text-sm ${nearbyLoading
                       ? 'bg-blue-400 text-white cursor-wait'
                       : userLocation
                         ? 'bg-blue-500 text-white hover:bg-blue-600'
                         : 'bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100'
-                  }`}
-                >
-                  {nearbyLoading ? (
-                    <>
-                      <span className="animate-spin">⏳</span>
-                      Getting location...
-                    </>
-                  ) : (
-                    <>
-                      <span>📍</span>
-                      Near Me
-                      {userLocation && <span className="text-xs">▼</span>}
-                    </>
-                  )}
-                </button>
+                      }`}
+                  >
+                    {nearbyLoading ? (
+                      <>
+                        <span className="animate-spin">⏳</span>
+                        Getting location...
+                      </>
+                    ) : (
+                      <>
+                        <span>📍</span>
+                        Near Me
+                        {userLocation && <span className="text-xs">▼</span>}
+                      </>
+                    )}
+                  </button>
 
-                {/* Nearby Dropdown */}
-                {showNearbyDropdown && userLocation && (
-                  <NearbyDropdown
-                    userLocation={userLocation}
-                    onSelect={handleSelectMasjid}
-                    onClose={() => setShowNearbyDropdown(false)}
-                  />
-                )}
+                  {/* Nearby Dropdown */}
+                  {showNearbyDropdown && userLocation && (
+                    <NearbyDropdown
+                      userLocation={userLocation}
+                      onSelect={handleSelectMasjid}
+                      onClose={() => setShowNearbyDropdown(false)}
+                    />
+                  )}
+                </div>
+
+                {/* Hamburger Menu Button */}
+                <button
+                  onClick={() => setShowMenu(true)}
+                  className="w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl flex items-center justify-center transition-colors"
+                  aria-label="Open menu"
+                >
+                  <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
               </div>
             </div>
 
@@ -433,6 +579,9 @@ function App() {
 
       {/* Modal */}
       <MasjidModal masjid={selectedMasjid} onClose={closeModal} userLocation={userLocation} />
+
+      {/* Hamburger Menu */}
+      <HamburgerMenu isOpen={showMenu} onClose={() => setShowMenu(false)} />
     </div>
   );
 }
