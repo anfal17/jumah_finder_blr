@@ -1,3 +1,5 @@
+import config from '../data/config.json';
+
 // Calculate distance between two coordinates using Haversine formula
 export const calculateDistance = (lat1, lng1, lat2, lng2) => {
     const R = 6371; // Earth's radius in kilometers
@@ -52,9 +54,9 @@ export const getUserLocation = () => {
                 reject(new Error(message));
             },
             {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 60000
+                enableHighAccuracy: config.geolocation.enableHighAccuracy,
+                timeout: config.geolocation.timeout,
+                maximumAge: config.geolocation.maximumAge
             }
         );
     });

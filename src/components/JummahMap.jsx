@@ -4,6 +4,7 @@ import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import masjidsData from '../data/masjids.json';
+import config from '../data/config.json';
 import { createCustomIcon } from './MarkerComponents';
 import { calculateDistance, getUserLocation } from '../utils/location';
 
@@ -61,6 +62,36 @@ const FlyToPosition = ({ position, zoom = 16 }) => {
     return null;
 };
 
+// Component to persist map position to localStorage
+const MapPersistence = () => {
+    const map = useMap();
+
+    useEffect(() => {
+        const savePosition = () => {
+            const center = map.getCenter();
+            const zoom = map.getZoom();
+            try {
+                localStorage.setItem(config.map.localStorageKey, JSON.stringify({
+                    center: [center.lat, center.lng],
+                    zoom: zoom
+                }));
+            } catch (e) {
+                // Ignore storage errors
+            }
+        };
+
+        map.on('moveend', savePosition);
+        map.on('zoomend', savePosition);
+
+        return () => {
+            map.off('moveend', savePosition);
+            map.off('zoomend', savePosition);
+        };
+    }, [map]);
+
+    return null;
+};
+
 // Map Controls Component (Zoom + Location)
 const MapControls = ({ userLocation, onLocationToggle, locationLoading }) => {
     const map = useMap();
@@ -75,8 +106,8 @@ const MapControls = ({ userLocation, onLocationToggle, locationLoading }) => {
                 onClick={onLocationToggle}
                 disabled={locationLoading}
                 className={`w-11 h-11 rounded-xl shadow-lg flex items-center justify-center transition-colors border text-xl ${userLocation
-                        ? 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600'
-                        : 'bg-white text-blue-500 border-slate-200 hover:bg-blue-50'
+                    ? 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600'
+                    : 'bg-white text-blue-500 border-slate-200 hover:bg-blue-50'
                     } ${locationLoading ? 'opacity-70 cursor-wait' : ''}`}
                 aria-label="Toggle location"
             >
@@ -104,18 +135,33 @@ const MapControls = ({ userLocation, onLocationToggle, locationLoading }) => {
     );
 };
 
-const JummahMap = ({ onMarkerClick, flyToMasjid, userLocation, setUserLocation, nearbyRadius = 5 }) => {
-    // Bellandur coordinates
-    const bellandurCenter = [12.9259, 77.6766];
+const JummahMap = ({ onMarkerClick, flyToMasjid, userLocation, setUserLocation, nearbyRadius = config.map.nearbyRadius }) => {
+    // Load saved position from localStorage
+    const getSavedPosition = () => {
+        try {
+            const saved = localStorage.getItem(config.map.localStorageKey);
+            if (saved) {
+                const { center, zoom } = JSON.parse(saved);
+                if (center && zoom) {
+                    return { center, zoom };
+                }
+            }
+        } catch (e) {
+            console.log('Could not load saved position');
+        }
+        return { center: config.map.defaultCenter, zoom: config.map.defaultZoom };
+    };
+
+    const savedPosition = getSavedPosition();
     const [flyToPosition, setFlyToPosition] = useState(null);
-    const [flyZoom, setFlyZoom] = useState(16);
+    const [flyZoom, setFlyZoom] = useState(config.map.flyToZoom);
     const [locationLoading, setLocationLoading] = useState(false);
 
     // Effect to handle flyToMasjid prop from parent
     useEffect(() => {
         if (flyToMasjid) {
             setFlyToPosition([flyToMasjid.lat, flyToMasjid.lng]);
-            setFlyZoom(16);
+            setFlyZoom(config.map.flyToZoom);
         }
     }, [flyToMasjid]);
 
@@ -123,7 +169,7 @@ const JummahMap = ({ onMarkerClick, flyToMasjid, userLocation, setUserLocation, 
     useEffect(() => {
         if (userLocation) {
             setFlyToPosition([userLocation.lat, userLocation.lng]);
-            setFlyZoom(14);
+            setFlyZoom(config.map.userLocationZoom);
         }
     }, [userLocation]);
 
@@ -175,8 +221,8 @@ const JummahMap = ({ onMarkerClick, flyToMasjid, userLocation, setUserLocation, 
     return (
         <div className="w-full h-full relative">
             <MapContainer
-                center={bellandurCenter}
-                zoom={13}
+                center={savedPosition.center}
+                zoom={savedPosition.zoom}
                 className="w-full h-full"
                 zoomControl={false}
                 scrollWheelZoom={true}
@@ -184,8 +230,11 @@ const JummahMap = ({ onMarkerClick, flyToMasjid, userLocation, setUserLocation, 
             >
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                    url={config.map.tileUrl}
                 />
+
+                {/* Persist map position to localStorage */}
+                <MapPersistence />
 
                 {flyToPosition && <FlyToPosition position={flyToPosition} zoom={flyZoom} />}
 

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import JummahMap from './components/JummahMap';
 import masjidsData from './data/masjids.json';
+import config from './data/config.json';
 import { getUserLocation, calculateDistance, formatDistance } from './utils/location';
 import './index.css';
 
@@ -13,7 +14,7 @@ const NearbyDropdown = ({ userLocation, onSelect, onClose }) => {
         ...m,
         distance: calculateDistance(userLocation.lat, userLocation.lng, m.lat, m.lng)
       }))
-      .filter(m => m.distance <= 5) // 5km radius
+      .filter(m => m.distance <= config.map.nearbyRadius) // config radius
       .sort((a, b) => a.distance - b.distance);
   }, [userLocation]);
 
@@ -141,7 +142,7 @@ const ReportModal = ({ masjid, onClose }) => {
     const body = encodeURIComponent(
       `MASJID DETAILS\n========================\nName: ${masjid.name}\nCurrent Times: ${masjid.shifts.map(s => s.time).join(', ')}\n\nREPORTED ISSUE\n========================\nIssue Type: ${issueType === 'incorrect_time' ? 'Incorrect Timing' : issueType === 'mosque_closed' ? 'Mosque Closed/Moved' : 'Other'}\nCorrect Time: ${correctTime || 'Not specified'}\n\nCOMMENTS\n========================\n${comments || 'None'}`
     );
-    window.location.href = `mailto:jumahfinder@gmail.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:${config.app.email}?subject=${subject}&body=${body}`;
     setSubmitted(true);
   };
 
@@ -207,6 +208,7 @@ const ReportModal = ({ masjid, onClose }) => {
 // Masjid Details Modal
 const MasjidModal = ({ masjid, onClose, userLocation }) => {
   const [showReportForm, setShowReportForm] = useState(false);
+  const [showMembersTooltip, setShowMembersTooltip] = useState(false);
 
   if (!masjid) return null;
 
@@ -252,12 +254,40 @@ const MasjidModal = ({ masjid, onClose, userLocation }) => {
         <div className="px-6 py-4">
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Facilities</p>
           <div className="flex flex-wrap gap-2">
-            <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${masjid.facilities.ladies ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-400 border border-slate-200'}`}>
-              <span>👩</span>Ladies Section
-            </span>
-            <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${masjid.facilities.parking ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-slate-100 text-slate-400 border border-slate-200'}`}>
-              <span>🅿️</span>Parking
-            </span>
+            {masjid.facilities.ladies && (
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span>👩</span>Ladies Section
+              </span>
+            )}
+            {masjid.facilities.parking && (
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                <span>🅿️</span>Parking
+              </span>
+            )}
+            {masjid.facilities.outsidersAllowed === false && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowMembersTooltip(!showMembersTooltip)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-amber-50 text-amber-700 border border-amber-200"
+                >
+                  <span>⚠️</span>Members Only
+                  <span className="ml-1 w-5 h-5 bg-amber-200 rounded-full text-amber-700 flex items-center justify-center text-xs font-bold">?</span>
+                </button>
+                {/* Tooltip - click to toggle */}
+                {showMembersTooltip && (
+                  <div className="absolute bottom-full left-0 mb-2 w-64 bg-slate-800 text-white text-xs rounded-lg p-3 shadow-lg z-50">
+                    <p className="font-semibold mb-1">What does this mean?</p>
+                    <p className="text-slate-300 leading-relaxed">
+                      This masjid may have restrictions: located inside a tech park, commercial building, or private colony. Only local community members or employees may be allowed.
+                    </p>
+                    <div className="absolute bottom-0 left-8 transform translate-y-1/2 rotate-45 w-2 h-2 bg-slate-800"></div>
+                  </div>
+                )}
+              </div>
+            )}
+            {!masjid.facilities.ladies && !masjid.facilities.parking && masjid.facilities.outsidersAllowed !== false && (
+              <span className="text-sm text-slate-400">No facilities info available</span>
+            )}
           </div>
         </div>
 
@@ -294,7 +324,7 @@ const HamburgerMenu = ({ isOpen, onClose }) => {
           `Google Maps Link (optional): \n\n` +
           `Additional Notes: `
         );
-        window.location.href = `mailto:jumahfinder@gmail.com?subject=${subject}&body=${body}`;
+        window.location.href = `mailto:${config.app.email}?subject=${subject}&body=${body}`;
         onClose();
       }
     },
@@ -311,7 +341,7 @@ const HamburgerMenu = ({ isOpen, onClose }) => {
           `Any feature suggestions?\n\n\n` +
           `Other comments:\n`
         );
-        window.location.href = `mailto:jumahfinder@gmail.com?subject=${subject}&body=${body}`;
+        window.location.href = `mailto:${config.app.email}?subject=${subject}&body=${body}`;
         onClose();
       }
     },
@@ -332,15 +362,107 @@ const HamburgerMenu = ({ isOpen, onClose }) => {
         }
         onClose();
       }
-    },
+    }
+  ];
+
+  const [showAbout, setShowAbout] = useState(false);
+
+  if (showAbout) {
+    return (
+      <>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[1700]" onClick={() => setShowAbout(false)} />
+        <div
+          className="fixed inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-md sm:w-full bg-white rounded-2xl shadow-2xl z-[1800] overflow-hidden max-h-[90vh] overflow-y-auto"
+          style={{ animation: 'modalSlideUp 0.3s ease-out' }}
+        >
+          {/* Header */}
+          <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 px-6 py-8 text-center">
+            <span className="text-5xl mb-3 block">🕌</span>
+            <h2 className="text-white font-bold text-2xl">Jummah Finder</h2>
+            <p className="text-emerald-100 text-sm mt-1">Bengaluru • Version 1.0</p>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-6">
+            {/* Mission */}
+            <div>
+              <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                <span>🎯</span> Our Mission
+              </h3>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                Jummah Finder is an effort to help Muslims in Bengaluru find Jummah (Friday prayer) timings easily.
+                Whether you're new to the city or visiting a different area, we want to make sure you never miss a Jummah.
+              </p>
+            </div>
+
+            {/* Note */}
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <h3 className="font-bold text-amber-800 mb-2 flex items-center gap-2">
+                <span>⚠️</span> Please Note
+              </h3>
+              <p className="text-amber-700 text-sm leading-relaxed">
+                The timings shown are approximate and based on community contributions.
+                We are continuously improving and updating the data. Always confirm with the masjid if possible.
+              </p>
+            </div>
+
+            {/* Contribute */}
+            <div>
+              <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                <span>🤝</span> Contribute
+              </h3>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                Help us grow! You can contribute by:
+              </p>
+              <ul className="text-slate-600 text-sm mt-2 space-y-1">
+                <li>• Adding new masjids via the menu</li>
+                <li>• Reporting incorrect timings</li>
+                <li>• Sharing with friends and family</li>
+              </ul>
+            </div>
+
+            {/* Stats */}
+            <div className="flex gap-4">
+              <div className="flex-1 bg-emerald-50 rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-emerald-600">5+</p>
+                <p className="text-xs text-emerald-700">Masjids Listed</p>
+              </div>
+              <div className="flex-1 bg-blue-50 rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-blue-600">∞</p>
+                <p className="text-xs text-blue-700">Growing Daily</p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="text-center pt-2">
+              <p className="text-slate-400 text-xs">
+                Made with ❤️ for the Muslim community
+              </p>
+            </div>
+          </div>
+
+          {/* Close Button */}
+          <div className="p-6 pt-0">
+            <button
+              onClick={() => setShowAbout(false)}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Add About to menu items with modal trigger
+  const allMenuItems = [
+    ...menuItems,
     {
       icon: 'ℹ️',
       label: 'About',
-      description: 'Version 1.0',
-      action: () => {
-        alert('Jummah Finder v1.0\n\nFind Jummah prayer timings at masjids in Bengaluru.\n\nMade with ❤️ for the Muslim community.');
-        onClose();
-      }
+      description: 'Learn about the app',
+      action: () => setShowAbout(true)
     }
   ];
 
@@ -380,7 +502,7 @@ const HamburgerMenu = ({ isOpen, onClose }) => {
 
         {/* Menu Items */}
         <div className="py-2">
-          {menuItems.map((item, idx) => (
+          {allMenuItems.map((item, idx) => (
             <button
               key={idx}
               onClick={item.action}

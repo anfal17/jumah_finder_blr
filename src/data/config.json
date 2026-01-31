@@ -1,0 +1,25 @@
+{
+    "app": {
+        "name": "Jummah Finder",
+        "version": "1.0",
+        "city": "Bengaluru",
+        "email": "jumahfinder@gmail.com"
+    },
+    "map": {
+        "defaultCenter": [
+            12.9259,
+            77.6766
+        ],
+        "defaultZoom": 13,
+        "nearbyRadius": 5,
+        "flyToZoom": 16,
+        "userLocationZoom": 14,
+        "tileUrl": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+        "localStorageKey": "jummahFinder_mapPosition"
+    },
+    "geolocation": {
+        "enableHighAccuracy": true,
+        "timeout": 10000,
+        "maximumAge": 60000
+    }
+}

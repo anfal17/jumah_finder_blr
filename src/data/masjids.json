@@ -16,7 +16,8 @@
         ],
         "facilities": {
             "ladies": true,
-            "parking": true
+            "parking": true,
+            "outsidersAllowed": true
         }
     },
     {
@@ -32,7 +33,8 @@
         ],
         "facilities": {
             "ladies": false,
-            "parking": false
+            "parking": false,
+            "outsidersAllowed": true
         }
     },
     {
@@ -52,7 +54,8 @@
         ],
         "facilities": {
             "ladies": true,
-            "parking": false
+            "parking": false,
+            "outsidersAllowed": true
         }
     },
     {
@@ -76,7 +79,8 @@
         ],
         "facilities": {
             "ladies": true,
-            "parking": true
+            "parking": true,
+            "outsidersAllowed": true
         }
     },
     {
@@ -92,7 +96,8 @@
         ],
         "facilities": {
             "ladies": false,
-            "parking": true
+            "parking": true,
+            "outsidersAllowed": false
         }
     }
 ]
