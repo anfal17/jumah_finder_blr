@@ -2,6 +2,19 @@
 
 A beautiful, mobile-first web app to find Jummah (Friday prayer) timings at masjids in Bengaluru, India.
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="screenshots/map-view.png" width="200" alt="Map View">
+  <img src="screenshots/near-me.png" width="200" alt="Near Me">
+  <img src="screenshots/search.png" width="200" alt="Search">
+</p>
+
+<p align="center">
+  <img src="screenshots/masjid-details.png" width="200" alt="Masjid Details">
+  <img src="screenshots/location-modal.png" width="200" alt="Location Selection">
+</p>
+
 ## ✨ Features
 
 ### 🗺️ Interactive Map
