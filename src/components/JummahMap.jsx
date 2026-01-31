@@ -135,7 +135,7 @@ const MapControls = ({ userLocation, onLocationToggle, locationLoading }) => {
     );
 };
 
-const JummahMap = ({ onMarkerClick, flyToMasjid, userLocation, setUserLocation, nearbyRadius = config.map.nearbyRadius }) => {
+const JummahMap = ({ onMarkerClick, flyToMasjid, userLocation, setUserLocation, onLocationError, nearbyRadius = config.map.nearbyRadius }) => {
     // Load saved position from localStorage
     const getSavedPosition = () => {
         try {
@@ -183,33 +183,18 @@ const JummahMap = ({ onMarkerClick, flyToMasjid, userLocation, setUserLocation, 
                 const location = await getUserLocation();
                 setUserLocation(location);
             } catch (error) {
-                alert(error.message);
+                if (onLocationError) {
+                    onLocationError(error.message);
+                }
             } finally {
                 setLocationLoading(false);
             }
         }
     };
 
-    // Filter masjids based on user location and radius
-    const visibleMasjids = userLocation
-        ? masjidsData.filter(masjid => {
-            const distance = calculateDistance(
-                userLocation.lat,
-                userLocation.lng,
-                masjid.lat,
-                masjid.lng
-            );
-            return distance <= nearbyRadius;
-        }).map(masjid => ({
-            ...masjid,
-            distance: calculateDistance(
-                userLocation.lat,
-                userLocation.lng,
-                masjid.lat,
-                masjid.lng
-            )
-        })).sort((a, b) => a.distance - b.distance)
-        : masjidsData;
+    // Always show all masjids on the map (don't filter based on location)
+    // The "Near Me" feature only filters the dropdown, not the map markers
+    const visibleMasjids = masjidsData;
 
     // Handle marker click
     const handleMarkerClick = (masjid) => {

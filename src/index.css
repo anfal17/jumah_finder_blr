@@ -27,6 +27,14 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
+/* Make Leaflet attribution smaller and subtle */
+.leaflet-control-attribution {
+  font-size: 8px !important;
+  padding: 2px 5px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  opacity: 0.6;
+}
+
 /* Modal slide up animation */
 @keyframes modalSlideUp {
   from {
@@ -48,6 +56,19 @@ body {
 
   to {
     transform: translateX(0);
+  }
+}
+
+/* Dropdown slide down animation */
+@keyframes dropdownSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

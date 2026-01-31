@@ -20,14 +20,14 @@ const NearbyDropdown = ({ userLocation, onSelect, onClose }) => {
 
   if (nearbyMasjids.length === 0) {
     return (
-      <div className="absolute top-full right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-200 p-4 z-50 w-72">
-        <p className="text-slate-500 text-sm text-center">No masjids within 5km</p>
+      <div className="absolute top-full right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-200 p-4 z-50 w-72" style={{ animation: 'dropdownSlideDown 0.2s ease-out' }}>
+        <p className="text-slate-500 text-sm text-center">No masjids within {config.map.nearbyRadius}km</p>
       </div>
     );
   }
 
   return (
-    <div className="absolute top-full right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-50 w-80 max-h-80 overflow-y-auto">
+    <div className="absolute top-full right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-50 w-80 max-h-80 overflow-y-auto" style={{ animation: 'dropdownSlideDown 0.2s ease-out' }}>
       <div className="bg-blue-50 px-4 py-2 border-b border-blue-100">
         <p className="text-blue-700 text-xs font-bold uppercase tracking-wider">
           {nearbyMasjids.length} Masjid{nearbyMasjids.length !== 1 ? 's' : ''} Near You
@@ -58,6 +58,73 @@ const NearbyDropdown = ({ userLocation, onSelect, onClose }) => {
           </div>
         </button>
       ))}
+    </div>
+  );
+};
+
+// Location Error Modal with Area Selection
+const LocationErrorModal = ({ errorMessage, onSelectArea, onRetry, onClose }) => {
+  return (
+    <div className="fixed inset-0 z-[2500] flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+      <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full max-h-[85vh] overflow-hidden" onClick={(e) => e.stopPropagation()} style={{ animation: 'modalSlideUp 0.3s ease-out' }}>
+
+        {/* Header */}
+        <div className="bg-gradient-to-br from-amber-500 to-orange-500 px-6 py-5">
+          <div className="flex items-center gap-4">
+            <span className="text-4xl">📍</span>
+            <div className="flex-1">
+              <h3 className="text-white font-bold text-xl">Location Access</h3>
+              <p className="text-amber-100 text-sm mt-1">{errorMessage}</p>
+            </div>
+            {/* Retry Button */}
+            <button
+              onClick={onRetry}
+              className="bg-white/20 hover:bg-white/30 text-white rounded-full p-2 transition-colors"
+              title="Retry"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Message */}
+        <div className="px-6 py-4 bg-slate-50 border-b border-slate-100">
+          <p className="text-slate-600 text-sm">
+            No worries! You can manually select your area in Bengaluru to find nearby masjids.
+          </p>
+        </div>
+
+        {/* Area List */}
+        <div className="max-h-64 overflow-y-auto">
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider px-6 py-3 bg-white sticky top-0">
+            Select Your Area
+          </p>
+          <div className="grid grid-cols-2 gap-2 px-4 pb-4">
+            {config.areas.map((area, idx) => (
+              <button
+                key={idx}
+                onClick={() => onSelectArea(area)}
+                className="bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl px-3 py-3 text-sm font-medium text-slate-700 hover:text-emerald-700 transition-all text-left"
+              >
+                {area.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Cancel Button */}
+        <div className="px-6 py-4 border-t border-slate-100">
+          <button
+            onClick={onClose}
+            className="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-3 rounded-xl transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
@@ -537,6 +604,8 @@ function App() {
   const [showNearbyDropdown, setShowNearbyDropdown] = useState(false);
   const [nearbyLoading, setNearbyLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [locationError, setLocationError] = useState(null);
+  const [selectedAreaName, setSelectedAreaName] = useState(null);
 
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
@@ -575,13 +644,35 @@ function App() {
       try {
         const location = await getUserLocation();
         setUserLocation(location);
+        setSelectedAreaName(null);
         setShowNearbyDropdown(true);
         setShowDropdown(false);
       } catch (error) {
-        alert(error.message);
+        // Show location error modal with area selection
+        setLocationError(error.message);
       } finally {
         setNearbyLoading(false);
       }
+    }
+  };
+
+  const handleSelectArea = (area) => {
+    // Set user location to the selected area
+    setUserLocation({ lat: area.lat, lng: area.lng });
+    setSelectedAreaName(area.name);
+    setLocationError(null);
+    setShowNearbyDropdown(true);
+  };
+
+  const handleRetryLocation = async () => {
+    setLocationError(null);
+    try {
+      const location = await getUserLocation();
+      setUserLocation(location);
+      setSelectedAreaName(null);
+      setShowNearbyDropdown(true);
+    } catch (error) {
+      setLocationError(error.message);
     }
   };
 
@@ -625,7 +716,17 @@ function App() {
                       <>
                         <span>📍</span>
                         Near Me
-                        {userLocation && <span className="text-xs">▼</span>}
+                        {userLocation && (
+                          <span
+                            className="text-xs transition-transform duration-300"
+                            style={{
+                              display: 'inline-block',
+                              transform: showNearbyDropdown ? 'rotate(180deg)' : 'rotate(0deg)'
+                            }}
+                          >
+                            ▼
+                          </span>
+                        )}
                       </>
                     )}
                   </button>
@@ -696,7 +797,8 @@ function App() {
         flyToMasjid={flyToMasjid}
         userLocation={userLocation}
         setUserLocation={setUserLocation}
-        nearbyRadius={5}
+        onLocationError={(msg) => setLocationError(msg)}
+        nearbyRadius={config.map.nearbyRadius}
       />
 
       {/* Modal */}
@@ -704,6 +806,16 @@ function App() {
 
       {/* Hamburger Menu */}
       <HamburgerMenu isOpen={showMenu} onClose={() => setShowMenu(false)} />
+
+      {/* Location Error Modal */}
+      {locationError && (
+        <LocationErrorModal
+          errorMessage={locationError}
+          onSelectArea={handleSelectArea}
+          onRetry={handleRetryLocation}
+          onClose={() => setLocationError(null)}
+        />
+      )}
     </div>
   );
 }
