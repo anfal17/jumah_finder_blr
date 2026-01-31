@@ -1,17 +1,89 @@
-# React + Vite
+# 🕌 Jummah Finder - Bengaluru
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A beautiful, mobile-first web app to find Jummah (Friday prayer) timings at masjids in Bengaluru, India.
 
-Currently, two official plugins are available:
+## ✨ Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Interactive Map** - Browse masjids on a clean, modern map
+- **Smart Markers** - See next Jummah time at a glance (shows "1st of N" for multiple shifts)
+- **Detailed Popups** - View full schedule, facilities info, and get directions
+- **Search** - Find masjids by name with instant dropdown results
+- **Fly-to Animation** - Smooth map transitions when selecting a masjid
+- **Report Feature** - Users can report incorrect timings directly to developers
+- **Mobile Responsive** - Works beautifully on all devices
 
-## React Compiler
+## 🚀 Quick Start
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+# Install dependencies
+npm install
 
-## Expanding the ESLint configuration
+# Start development server
+npm run dev
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-# jumah_finder_blr
+# Build for production
+npm run build
+```
+
+## 🛠️ Tech Stack
+
+- **React 18** - UI framework
+- **Vite** - Build tool & dev server
+- **Leaflet** - Interactive maps
+- **React-Leaflet** - React bindings for Leaflet
+- **React-Leaflet-Cluster** - Marker clustering
+- **Tailwind CSS** - Styling
+
+## 📁 Project Structure
+
+```
+src/
+├── components/
+│   ├── JummahMap.jsx        # Main map component with markers
+│   └── MarkerComponents.jsx # Custom marker icons
+├── data/
+│   └── masjids.json         # Masjid data (times, facilities, coordinates)
+├── App.jsx                  # Main app with search, modals, and layout
+├── index.css                # Global styles and Tailwind config
+└── main.jsx                 # App entry point
+```
+
+## 📊 Data Format
+
+Each masjid in `masjids.json`:
+
+```json
+{
+  "id": 1,
+  "name": "Masjid Name",
+  "lat": 12.9259,
+  "lng": 77.6766,
+  "shifts": [
+    { "time": "12:30 PM", "lang": "Urdu" },
+    { "time": "1:30 PM", "lang": "English" }
+  ],
+  "facilities": {
+    "ladies": true,
+    "parking": true
+  }
+}
+```
+
+## 🤝 Contributing
+
+Found incorrect timing? Use the **Report** button in the app, or:
+1. Fork this repo
+2. Update `src/data/masjids.json`
+3. Submit a pull request
+
+## 📬 Contact
+
+Report issues or suggestions: **jumahfinder@gmail.com**
+
+## 📄 License
+
+MIT License - feel free to use and modify!
+
+---
+
+Made with ❤️ for the Muslim community in Bengaluru
