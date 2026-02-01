@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, useMap, Circle } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import masjidsData from '../data/masjids.json';
+// import masjidsData from '../data/masjids.json';
 import config from '../data/config.json';
 import { createCustomIcon } from './MarkerComponents';
 import { calculateDistance, getUserLocation } from '../utils/location';
@@ -135,7 +135,7 @@ const MapControls = ({ userLocation, onLocationToggle, locationLoading }) => {
     );
 };
 
-const JummahMap = ({ onMarkerClick, flyToMasjid, userLocation, setUserLocation, onLocationError, nearbyRadius = config.map.nearbyRadius }) => {
+const JummahMap = ({ masjids = [], onMarkerClick, flyToMasjid, userLocation, setUserLocation, onLocationError, nearbyRadius = config.map.nearbyRadius }) => {
     // Load saved position from localStorage
     const getSavedPosition = () => {
         try {
@@ -194,7 +194,7 @@ const JummahMap = ({ onMarkerClick, flyToMasjid, userLocation, setUserLocation, 
 
     // Always show all masjids on the map (don't filter based on location)
     // The "Near Me" feature only filters the dropdown, not the map markers
-    const visibleMasjids = masjidsData;
+    const visibleMasjids = masjids;
 
     // Handle marker click
     const handleMarkerClick = (masjid) => {
